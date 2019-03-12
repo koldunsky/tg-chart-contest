@@ -1,32 +1,41 @@
+import getRelativeCoords from "../utils/getRelativeCoords";
+
 export default class Minimap {
   constructor(data) {
+    console.info(data);
     this.data = data;
-    this.ctx = null;
+    this.relativeCoords = null;
+    this.svg = null;
   }
 
-  renderOneDataSet = (set) => {
-    const {ctx, data} = this;
-    const setId = set[0];
-
-    if (data.types[setId] === 'line') {
-      ctx.strokeStyle = data.colors[setId];
-      ctx.beginPath();
-      ctx.moveTo(1, set[1]);
-      for (let i = 2; i < set.length; i++) {
-        ctx.lineTo(i * 3, set[i]);
-        console.info(i * 3, set[i], data.colors[setId]);
-      }
-      ctx.stroke();
+  getPath(coords = []) {
+    let d = '';
+    d += `M 0 ${coords[0]}`;
+    for(let i = 1; i < coords.length; i++) {
+      const step = 10;
+      d +=  `L ${step * i} ${coords[i]} `;
     }
+
+    return d;
+  }
+
+  renderOneDataSet = ({id, color}) => {
+    const {svg} = this;
+      const svgNS = svg.namespaceURI;
+
+      const path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('d', this.getPath(getRelativeCoords(this.data.charts)[id]));
+      path.setAttribute('stroke', color);
+      path.setAttribute('fill', 'transparent');
+      this.svg.appendChild(path);
   };
 
   render() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 500;
-    this.ctx = canvas.getContext('2d');
     const {data} = this;
-    data.columns.forEach(this.renderOneDataSet);
-
-    return canvas;
+    this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    this.svg.setAttribute('width', 1100);
+    this.svg.setAttribute('height', 300);
+    data.charts.forEach(this.renderOneDataSet);
+    return this.svg;
   }
 }

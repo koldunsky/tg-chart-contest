@@ -1,9 +1,11 @@
 import Minimap from './Minimap';
+import normalizeData from '../utils/normalizeData';
 
 export default class Chart {
   constructor(el, data) {
     console.log(el, data);
-    this.data = data;
+    this.data = normalizeData(data);
+    this.columns = null;
     this.el = el;
 
     this.render();
